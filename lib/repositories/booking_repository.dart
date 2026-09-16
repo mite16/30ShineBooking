@@ -1,45 +1,45 @@
-import '../data/mock_data.dart';
 import '../models/booking.dart';
 import '../models/salon.dart';
 import '../models/service_item.dart';
 import '../models/stylist.dart';
+import '../services/api_client.dart';
 
-/// Mock "database" for salons/services/stylists/bookings. Same shape as
-/// FakeDatabase from Module 9: an in-memory table with async methods so
-/// swapping in a real REST API later (Slot 12) only touches this file.
+String _isoDate(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+/// Talks to the Node/Express + MongoDB backend in `backend/` (see its
+/// README for the full endpoint list). Same method signatures as the mock
+/// version this replaced — BookingProvider and every screen needed no
+/// changes, only this file did (Repository pattern, Module 3).
 class BookingRepository {
-  final List<Booking> _bookings = [];
-  int _autoId = 0;
+  BookingRepository({ApiClient? client}) : _client = client ?? ApiClient();
+
+  final ApiClient _client;
 
   Future<List<Salon>> getSalons() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return List.unmodifiable(MockData.salons);
+    final json = await _client.get('/salons');
+    return (json as List).map((s) => Salon.fromJson(s as Map<String, dynamic>)).toList();
   }
 
   Future<List<ServiceItem>> getServices() async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return List.unmodifiable(MockData.services);
+    final json = await _client.get('/services');
+    return (json as List).map((s) => ServiceItem.fromJson(s as Map<String, dynamic>)).toList();
   }
 
   Future<List<Stylist>> getStylists(String salonId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return MockData.stylistsFor(salonId);
+    final json = await _client.get('/salons/$salonId/stylists');
+    return (json as List).map((s) => Stylist.fromJson(s as Map<String, dynamic>)).toList();
   }
 
   Future<List<String>> getAvailableTimeSlots({
     required String salonId,
     required DateTime date,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    // Mock: every slot is available except ones already booked that day.
-    final taken = _bookings
-        .where((b) =>
-            b.salonId == salonId &&
-            b.status != BookingStatus.cancelled &&
-            _isSameDay(b.date, date))
-        .map((b) => b.timeSlot)
-        .toSet();
-    return MockData.timeSlots.where((t) => !taken.contains(t)).toList();
+    final json = await _client.get(
+      '/bookings/available-slots?salonId=$salonId&date=${_isoDate(date)}',
+      auth: true,
+    );
+    return (json as List).cast<String>();
   }
 
   Future<Booking> createBooking({
@@ -52,41 +52,27 @@ class BookingRepository {
     required String timeSlot,
     String? note,
   }) async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    final booking = Booking(
-      id: 'bk${++_autoId}',
-      userId: userId,
-      salonId: salon.id,
-      salonName: salon.name,
-      services: services,
-      stylistId: stylistId,
-      stylistName: stylistName,
-      date: date,
-      timeSlot: timeSlot,
-      status: BookingStatus.pending,
-      note: note,
+    final json = await _client.post(
+      '/bookings',
+      auth: true,
+      body: {
+        'salonId': salon.id,
+        'serviceIds': services.map((s) => s.id).toList(),
+        'stylistId': ?stylistId,
+        'date': _isoDate(date),
+        'timeSlot': timeSlot,
+        'note': ?note,
+      },
     );
-    _bookings.add(booking);
-    return booking;
+    return Booking.fromJson(json as Map<String, dynamic>);
   }
 
   Future<List<Booking>> getMyBookings(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    final mine = _bookings.where((b) => b.userId == userId).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-    return mine;
+    final json = await _client.get('/bookings/my', auth: true);
+    return (json as List).map((b) => Booking.fromJson(b as Map<String, dynamic>)).toList();
   }
 
   Future<void> cancelBooking(String bookingId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    final index = _bookings.indexWhere((b) => b.id == bookingId);
-    if (index != -1) {
-      _bookings[index] =
-          _bookings[index].copyWith(status: BookingStatus.cancelled);
-    }
+    await _client.patch('/bookings/$bookingId/cancel', auth: true);
   }
-
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
 }

@@ -14,6 +14,17 @@ class Salon {
     required this.address,
     required this.rating,
     required this.openHours,
-    required this.imageAsset,
+    this.imageAsset = '',
   });
+
+  factory Salon.fromJson(Map<String, dynamic> json) {
+    return Salon(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      district: json['district'] as String,
+      address: json['address'] as String,
+      rating: (json['rating'] as num).toDouble(),
+      openHours: json['openHours'] as String,
+    );
+  }
 }

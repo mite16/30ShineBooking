@@ -49,6 +49,27 @@ class Booking {
   int get totalDurationMinutes =>
       services.fold(0, (sum, s) => sum + s.durationMinutes);
 
+  factory Booking.fromJson(Map<String, dynamic> json) {
+    return Booking(
+      id: json['id'] as String,
+      userId: json['userId'] as String,
+      salonId: json['salonId'] as String,
+      salonName: json['salonName'] as String,
+      services: (json['services'] as List)
+          .map((s) => ServiceItem.fromBookingSnapshot(s as Map<String, dynamic>))
+          .toList(),
+      stylistId: json['stylistId'] as String?,
+      stylistName: json['stylistName'] as String? ?? 'Bất kỳ',
+      date: DateTime.parse(json['date'] as String).toLocal(),
+      timeSlot: json['timeSlot'] as String,
+      status: BookingStatus.values.firstWhere(
+        (s) => s.name == json['status'],
+        orElse: () => BookingStatus.pending,
+      ),
+      note: json['note'] as String?,
+    );
+  }
+
   Booking copyWith({BookingStatus? status}) {
     return Booking(
       id: id,

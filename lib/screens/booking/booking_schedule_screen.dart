@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/booking_provider.dart';
+import '../../widgets/error_retry.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_title.dart';
 import 'booking_review_screen.dart';
@@ -81,6 +82,11 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(child: CircularProgressIndicator()),
+            )
+          else if (booking.slotsError != null)
+            ErrorRetry(
+              message: booking.slotsError!,
+              onRetry: () => context.read<BookingProvider>().selectDate(booking.selectedDate!),
             )
           else if (booking.availableSlots.isEmpty)
             const Padding(

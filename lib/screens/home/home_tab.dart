@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
+import '../../widgets/error_retry.dart';
 import '../../widgets/salon_card.dart';
 import '../../widgets/section_title.dart';
 import 'salon_detail_screen.dart';
@@ -64,6 +65,11 @@ class _HomeTabState extends State<HomeTab> {
               const Padding(
                 padding: EdgeInsets.only(top: 40),
                 child: Center(child: CircularProgressIndicator()),
+              )
+            else if (booking.catalogError != null)
+              ErrorRetry(
+                message: booking.catalogError!,
+                onRetry: () => context.read<BookingProvider>().loadCatalog(),
               )
             else if (booking.salons.isEmpty)
               const Padding(

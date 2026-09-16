@@ -1,68 +1,52 @@
 import '../models/user.dart';
+import '../services/api_client.dart';
 
-/// Mock authentication backend, following the same pattern used in class
-/// (Module 10 demo): simulate network latency with [Future.delayed] and
-/// validate locally. Slot 12 of the PE will replace this with real HTTP
-/// calls to our own backend, without changing [AuthProvider]'s API.
+/// Result of a successful login/register call: the JWT plus the user it
+/// belongs to. AuthProvider persists [token] and uses it on every
+/// subsequent authenticated request (Module 10 token-based auth pattern).
+class AuthResult {
+  const AuthResult({required this.token, required this.user});
+  final String token;
+  final AppUser user;
+}
+
+/// Talks to POST /api/auth/login and /register on the Node/Express backend
+/// (see backend/README.md). Same method signatures as the mock version this
+/// replaced, so AuthProvider needed no changes beyond reading `result.token`.
 class AuthRepository {
-  // In-memory "users table" seeded with one demo account.
-  final List<Map<String, String>> _users = [
-    {
-      'id': 'u1',
-      'fullName': 'Nguyễn Văn Demo',
-      'phone': '0900000000',
-      'email': 'demo@30shine.vn',
-      'password': '123456',
-    },
-  ];
+  AuthRepository({ApiClient? client}) : _client = client ?? ApiClient();
 
-  Future<AppUser> login({
+  final ApiClient _client;
+
+  Future<AuthResult> login({
     required String emailOrPhone,
     required String password,
   }) async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    final match = _users.firstWhere(
-      (u) =>
-          (u['email'] == emailOrPhone || u['phone'] == emailOrPhone) &&
-          u['password'] == password,
-      orElse: () => const {},
-    );
-
-    if (match.isEmpty) {
-      throw Exception('Sai email/số điện thoại hoặc mật khẩu');
-    }
-
-    return AppUser(
-      id: match['id']!,
-      fullName: match['fullName']!,
-      phone: match['phone']!,
-      email: match['email']!,
+    final json = await _client.post('/auth/login', body: {
+      'emailOrPhone': emailOrPhone,
+      'password': password,
+    });
+    return AuthResult(
+      token: json['token'] as String,
+      user: AppUser.fromJson(json['user'] as Map<String, dynamic>),
     );
   }
 
-  Future<AppUser> register({
+  Future<AuthResult> register({
     required String fullName,
     required String phone,
     required String email,
     required String password,
   }) async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    final exists = _users.any((u) => u['email'] == email || u['phone'] == phone);
-    if (exists) {
-      throw Exception('Email hoặc số điện thoại đã được sử dụng');
-    }
-
-    final id = 'u${_users.length + 1}';
-    _users.add({
-      'id': id,
+    final json = await _client.post('/auth/register', body: {
       'fullName': fullName,
       'phone': phone,
       'email': email,
       'password': password,
     });
-
-    return AppUser(id: id, fullName: fullName, phone: phone, email: email);
+    return AuthResult(
+      token: json['token'] as String,
+      user: AppUser.fromJson(json['user'] as Map<String, dynamic>),
+    );
   }
 }

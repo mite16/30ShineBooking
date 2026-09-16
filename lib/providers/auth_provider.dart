@@ -5,8 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user.dart';
 import '../repositories/auth_repository.dart';
+import '../services/api_client.dart' show kAuthTokenKey;
 
-const _kTokenKey = 'auth_token';
+const _kTokenKey = kAuthTokenKey;
 const _kUserKey = 'auth_user';
 
 /// Holds the authentication/session state for the whole app, following the
@@ -47,12 +48,12 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading(true);
     try {
-      final user = await _repository.login(
+      final result = await _repository.login(
         emailOrPhone: emailOrPhone,
         password: password,
       );
-      await _persistSession(user);
-      _currentUser = user;
+      await _persistSession(result);
+      _currentUser = result.user;
       _errorMessage = null;
       return true;
     } catch (e) {
@@ -71,14 +72,14 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading(true);
     try {
-      final user = await _repository.register(
+      final result = await _repository.register(
         fullName: fullName,
         phone: phone,
         email: email,
         password: password,
       );
-      await _persistSession(user);
-      _currentUser = user;
+      await _persistSession(result);
+      _currentUser = result.user;
       _errorMessage = null;
       return true;
     } catch (e) {
@@ -97,10 +98,10 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _persistSession(AppUser user) async {
+  Future<void> _persistSession(AuthResult result) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_kTokenKey, 'mock_token_${user.id}');
-    await prefs.setString(_kUserKey, jsonEncode(user.toJson()));
+    await prefs.setString(_kTokenKey, result.token);
+    await prefs.setString(_kUserKey, jsonEncode(result.user.toJson()));
   }
 
   void _setLoading(bool value) {

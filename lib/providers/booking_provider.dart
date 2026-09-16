@@ -18,6 +18,7 @@ class BookingProvider extends ChangeNotifier {
   List<ServiceItem> services = [];
   List<Stylist> stylists = [];
   bool isLoadingCatalog = false;
+  String? catalogError;
 
   // ---- In-progress booking selection ----
   Salon? selectedSalon;
@@ -27,6 +28,7 @@ class BookingProvider extends ChangeNotifier {
   String? selectedTimeSlot;
   List<String> availableSlots = [];
   bool isLoadingSlots = false;
+  String? slotsError;
 
   bool isSubmitting = false;
   String? errorMessage;
@@ -34,23 +36,34 @@ class BookingProvider extends ChangeNotifier {
   // ---- My bookings ----
   List<Booking> myBookings = [];
   bool isLoadingMyBookings = false;
+  String? myBookingsError;
 
   int get selectedTotalPrice =>
       selectedServices.fold(0, (sum, s) => sum + s.priceVnd);
 
   Future<void> loadCatalog() async {
     isLoadingCatalog = true;
+    catalogError = null;
     notifyListeners();
-    salons = await _repository.getSalons();
-    services = await _repository.getServices();
-    isLoadingCatalog = false;
-    notifyListeners();
+    try {
+      salons = await _repository.getSalons();
+      services = await _repository.getServices();
+    } catch (e) {
+      catalogError = _readable(e);
+    } finally {
+      isLoadingCatalog = false;
+      notifyListeners();
+    }
   }
 
   Future<void> selectSalon(Salon salon) async {
     selectedSalon = salon;
     selectedStylist = null;
-    stylists = await _repository.getStylists(salon.id);
+    try {
+      stylists = await _repository.getStylists(salon.id);
+    } catch (_) {
+      stylists = []; // Non-fatal: user can still book with "Bất kỳ".
+    }
     notifyListeners();
   }
 
@@ -73,13 +86,20 @@ class BookingProvider extends ChangeNotifier {
     selectedTimeSlot = null;
     if (selectedSalon == null) return;
     isLoadingSlots = true;
+    slotsError = null;
     notifyListeners();
-    availableSlots = await _repository.getAvailableTimeSlots(
-      salonId: selectedSalon!.id,
-      date: date,
-    );
-    isLoadingSlots = false;
-    notifyListeners();
+    try {
+      availableSlots = await _repository.getAvailableTimeSlots(
+        salonId: selectedSalon!.id,
+        date: date,
+      );
+    } catch (e) {
+      availableSlots = [];
+      slotsError = _readable(e);
+    } finally {
+      isLoadingSlots = false;
+      notifyListeners();
+    }
   }
 
   void selectTimeSlot(String slot) {
@@ -115,7 +135,7 @@ class BookingProvider extends ChangeNotifier {
       _resetSelection();
       return booking;
     } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+      errorMessage = _readable(e);
       return null;
     } finally {
       isSubmitting = false;
@@ -134,14 +154,25 @@ class BookingProvider extends ChangeNotifier {
 
   Future<void> loadMyBookings(String userId) async {
     isLoadingMyBookings = true;
+    myBookingsError = null;
     notifyListeners();
-    myBookings = await _repository.getMyBookings(userId);
-    isLoadingMyBookings = false;
-    notifyListeners();
+    try {
+      myBookings = await _repository.getMyBookings(userId);
+    } catch (e) {
+      myBookingsError = _readable(e);
+    } finally {
+      isLoadingMyBookings = false;
+      notifyListeners();
+    }
   }
 
   Future<void> cancelBooking(String bookingId, String userId) async {
-    await _repository.cancelBooking(bookingId);
-    await loadMyBookings(userId);
+    try {
+      await _repository.cancelBooking(bookingId);
+    } finally {
+      await loadMyBookings(userId);
+    }
   }
+
+  String _readable(Object e) => e.toString().replaceFirst('Exception: ', '');
 }

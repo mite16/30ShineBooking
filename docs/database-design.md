@@ -104,11 +104,11 @@ Gộp `booking_services` vào chính document `bookings` dưới dạng mảng n
 
 `users`, `salons`, `stylists`, `services` giữ nguyên là các collection riêng.
 
-## Trạng thái ứng dụng hiện tại (Slot 6)
+## Trạng thái hiện tại (đã lên Slot 12)
 
-Toàn bộ `lib/repositories/*` đang chạy trên dữ liệu mock trong bộ nhớ (giống pattern
-`FakeDatabase` học ở Module 9), để UI chạy được ngay không cần chờ backend. Ở Slot 12,
-chỉ cần thay nội dung 2 file `auth_repository.dart` và `booking_repository.dart` bằng các
-lệnh gọi `http` tới REST API thật — `AuthProvider`/`BookingProvider` và toàn bộ UI phía
-trên không cần sửa, vì chúng chỉ phụ thuộc vào chữ ký hàm của repository (Repository
-pattern, Module 3).
+Schema ở trên đã được hiện thực bằng Mongoose trong `backend/src/models/` đúng như thiết
+kế: `booking_services` gộp vào mảng `services` nhúng trong mỗi `Booking` document, như mô
+tả ở mục "Nếu chọn NoSQL" — vì nhóm đã chốt dùng MongoDB. `lib/repositories/*.dart` phía
+Flutter giờ gọi thẳng REST API (`backend/`) thay vì dữ liệu mock, đúng như dự tính ban đầu:
+chỉ 2 file repository thay đổi, `AuthProvider`/`BookingProvider` và toàn bộ UI không cần
+sửa (Repository pattern, Module 3). Chi tiết endpoint xem `backend/README.md`.

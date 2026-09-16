@@ -26,9 +26,33 @@ class ServiceItem {
   const ServiceItem({
     required this.id,
     required this.name,
-    required this.description,
+    this.description = '',
     required this.priceVnd,
     required this.durationMinutes,
-    required this.category,
+    this.category = ServiceCategory.cutWash,
   });
+
+  factory ServiceItem.fromJson(Map<String, dynamic> json) {
+    return ServiceItem(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String? ?? '',
+      priceVnd: json['priceVnd'] as int,
+      durationMinutes: json['durationMinutes'] as int,
+      category: ServiceCategory.values.firstWhere(
+        (c) => c.name == json['category'],
+        orElse: () => ServiceCategory.cutWash,
+      ),
+    );
+  }
+
+  /// Only the fields the backend stores in a booking snapshot are present.
+  factory ServiceItem.fromBookingSnapshot(Map<String, dynamic> json) {
+    return ServiceItem(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      priceVnd: json['priceVnd'] as int,
+      durationMinutes: json['durationMinutes'] as int,
+    );
+  }
 }

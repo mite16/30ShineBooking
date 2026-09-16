@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../widgets/booking_card.dart';
+import '../../widgets/error_retry.dart';
 import 'booking_detail_screen.dart';
 
 class MyBookingsScreen extends StatefulWidget {
@@ -36,7 +37,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         onRefresh: _reload,
         child: booking.isLoadingMyBookings
             ? const Center(child: CircularProgressIndicator())
-            : booking.myBookings.isEmpty
+            : booking.myBookingsError != null
+                ? ListView(
+                    children: [
+                      ErrorRetry(message: booking.myBookingsError!, onRetry: _reload),
+                    ],
+                  )
+                : booking.myBookings.isEmpty
                 ? ListView(
                     children: const [
                       Padding(

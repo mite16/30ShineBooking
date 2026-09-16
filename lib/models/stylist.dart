@@ -12,4 +12,14 @@ class Stylist {
     required this.level,
     required this.rating,
   });
+
+  factory Stylist.fromJson(Map<String, dynamic> json) {
+    return Stylist(
+      id: json['id'] as String,
+      salonId: json['salonId'] as String,
+      name: json['name'] as String,
+      level: json['level'] as String,
+      rating: (json['rating'] as num).toDouble(),
+    );
+  }
 }

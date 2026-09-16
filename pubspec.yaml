@@ -41,6 +41,8 @@ dependencies:
   shared_preferences: ^2.3.3
   # Date/time formatting for booking screens
   intl: ^0.20.2
+  # REST API calls to backend/ (Module 8 pattern)
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:
