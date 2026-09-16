@@ -48,8 +48,14 @@ Muốn đổi giữa các cách trên, chỉ cần sửa `MONGODB_URI`, không �
 | GET | `/api/bookings/my` | Bearer token | Lịch sử đặt lịch của user hiện tại |
 | PATCH | `/api/bookings/:id/cancel` | Bearer token | Huỷ lịch hẹn |
 | GET | `/api/admin/stats` | Bearer token | Thống kê: tổng lịch hẹn, doanh thu, top dịch vụ (mục "khuyến khích" 6 điểm) |
+| GET | `/api/chat/conversations` | Bearer token | Danh sách cuộc trò chuyện của user hiện tại |
+| POST | `/api/chat/conversations` | Bearer token | Tìm/tạo cuộc trò chuyện 1:1: `{phoneOrEmail}` của người muốn nhắn |
+| GET | `/api/chat/conversations/:id/messages` | Bearer token | Toàn bộ tin nhắn trong 1 cuộc trò chuyện |
+| POST | `/api/chat/conversations/:id/messages` | Bearer token | Gửi tin nhắn: `{text}` |
 
 Gửi token ở header: `Authorization: Bearer <token>` — đúng pattern JWT học ở Module 10.
+Chat chỉ hỗ trợ 1:1 (không group chat); Flutter app tự làm mới tin nhắn mỗi ~3 giây khi
+đang mở 1 cuộc trò chuyện (poll REST, không dùng WebSocket) — xem `ChatProvider`.
 
 ## Test nhanh bằng curl
 

@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const catalogRoutes = require('./routes/catalogRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 app.use(cors());
@@ -18,6 +19,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', catalogRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Central error handler — keeps controllers free of try/catch boilerplate.
 app.use((err, req, res, next) => {

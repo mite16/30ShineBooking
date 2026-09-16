@@ -5,8 +5,10 @@ import 'package:provider/provider.dart';
 import 'app.dart';
 import 'providers/auth_provider.dart';
 import 'providers/booking_provider.dart';
+import 'providers/chat_provider.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/booking_repository.dart';
+import 'repositories/chat_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +19,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider(AuthRepository())),
         ChangeNotifierProvider(create: (_) => BookingProvider(BookingRepository())),
+        ChangeNotifierProvider(create: (_) => ChatProvider(ChatRepository())),
       ],
       child: const BookingApp(),
     ),

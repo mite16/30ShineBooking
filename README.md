@@ -30,13 +30,19 @@ lịch hẹn chưa diễn ra ở tab "Lịch hẹn".
 | 8 | Kết nối RESTful API thật tới backend riêng | ✅ Node.js + Express (`backend/`) |
 | 9 | Lưu dữ liệu vào database server thật (không SQLite) | ✅ MongoDB |
 | 10a | Thống kê cho quản lý (tổng lịch hẹn, doanh thu, top dịch vụ) | ✅ API `/api/admin/stats` (chưa có màn hình riêng) |
-| 10b | Local notification | ⏳ Chưa làm |
-| 10c | Chat giữa user | ⏳ Chưa làm |
+| 10b | Local notification sau đăng nhập & đặt lịch thành công | ✅ Android/iOS/macOS/Linux (không có Web/Windows) |
+| 10c | Chat giữa user (tìm nhau qua SĐT/email, nhắn tin, tự làm mới ~3s) | ✅ |
 | 10d | Thanh toán VNPay/MoMo | ⏳ Cần tài khoản sandbox VNPay/MoMo (tự đăng ký, miễn phí) trước khi code phần này |
 
-Mục 1–9 và 10a đã chạy với **dữ liệu thật** qua backend riêng (không còn mock), theo đúng
+Mục 1–9, 10a–10c đã chạy với **dữ liệu thật** qua backend riêng (không còn mock), theo đúng
 kiến trúc Repository pattern định sẵn từ Slot 6: `lib/repositories/*.dart` gọi HTTP thay vì
 trả dữ liệu giả lập, còn `providers/` và toàn bộ `screens/` giữ nguyên không đổi.
+
+**Về local notification (10b):** package `flutter_local_notifications` không hỗ trợ Web lẫn
+Windows desktop — chỉ Android/iOS/macOS/Linux. Trên máy dev hiện chưa có Android emulator
+nên chưa xem được popup thật; đã verify bằng console log là `NotificationService.show()`
+được gọi đúng lúc, đúng nội dung (ngay sau `AuthProvider.login()` và `BookingProvider.confirmBooking()`
+thành công). Chạy `flutter run` trên điện thoại/emulator Android thật sẽ thấy notification thật.
 
 ## 4. Công nghệ sử dụng
 
@@ -46,6 +52,7 @@ trả dữ liệu giả lập, còn `providers/` và toàn bộ `screens/` giữ
 - **Database:** MongoDB (Mongoose ODM) — không dùng SQLite
 - **Auth:** JWT (`jsonwebtoken`) + mật khẩu băm bằng `bcryptjs`
 - **Local storage (Flutter):** `shared_preferences` (lưu token phiên đăng nhập)
+- **Local notification:** `flutter_local_notifications` (Module 10.5 / LO7)
 - **Kiến trúc:** Repository pattern — UI → Provider → Repository → REST API → MongoDB
 - **Testing:** `flutter_test` — unit test cho `Validators`, widget test cho `LoginScreen`
 
@@ -55,18 +62,21 @@ trả dữ liệu giả lập, còn `providers/` và toàn bộ `screens/` giữ
 lib/
   main.dart               Khởi tạo app, đăng ký Provider
   app.dart                MaterialApp + theme
-  models/                 Các model: User, Salon, ServiceItem, Stylist, Booking (đều có fromJson)
-  services/api_client.dart  Wrapper http + đính kèm JWT (Module 8 pattern)
-  repositories/           AuthRepository, BookingRepository — gọi REST API thật
-  providers/              AuthProvider, BookingProvider (ChangeNotifier)
+  models/                 User, Salon, ServiceItem, Stylist, Booking, ChatPeer, Conversation, ChatMessage (đều có fromJson)
+  services/
+    api_client.dart       Wrapper http + đính kèm JWT (Module 8 pattern)
+    notification_service.dart  Local notification sau login/booking (Module 10.5 / LO7)
+  repositories/           AuthRepository, BookingRepository, ChatRepository — gọi REST API thật
+  providers/              AuthProvider, BookingProvider, ChatProvider (ChangeNotifier)
   screens/
     splash_screen.dart
     auth/                 login_screen.dart, register_screen.dart
-    home/                 home_shell.dart (bottom nav), home_tab.dart, salon_detail_screen.dart
+    home/                 home_shell.dart (bottom nav 4 tab), home_tab.dart, salon_detail_screen.dart
     booking/              service_selection, booking_schedule, booking_review, booking_success
     my_bookings/          my_bookings_screen.dart, booking_detail_screen.dart
+    chat/                 chat_list_screen.dart, chat_screen.dart
     profile/              profile_screen.dart
-  widgets/                Các widget dùng chung (card, button, tile, error+retry...)
+  widgets/                Các widget dùng chung (card, button, tile, chat bubble, error+retry...)
   utils/                  validators.dart, formatters.dart
 docs/
   database-design.md      ERD + danh sách bảng (Slot 6 deliverable)

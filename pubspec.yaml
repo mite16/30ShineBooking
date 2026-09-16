@@ -43,6 +43,8 @@ dependencies:
   intl: ^0.20.2
   # REST API calls to backend/ (Module 8 pattern)
   http: ^1.2.2
+  # Local notification after key actions - login, booking success (Module 10.5 / LO7)
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:

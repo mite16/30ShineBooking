@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/booking.dart';
@@ -5,6 +7,8 @@ import '../models/salon.dart';
 import '../models/service_item.dart';
 import '../models/stylist.dart';
 import '../repositories/booking_repository.dart';
+import '../services/notification_service.dart';
+import '../utils/formatters.dart';
 
 /// Drives both the multi-step "new booking" flow (pick salon -> services ->
 /// stylist/time -> review) and the "My bookings" list.
@@ -133,6 +137,10 @@ class BookingProvider extends ChangeNotifier {
       // that tab was already built and isn't re-fetching right now.
       myBookings = [booking, ...myBookings];
       _resetSelection();
+      unawaited(NotificationService.instance.show(
+        title: 'Đặt lịch thành công',
+        body: '${booking.salonName} · ${Formatters.date(booking.date)} · ${booking.timeSlot}',
+      ));
       return booking;
     } catch (e) {
       errorMessage = _readable(e);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../repositories/auth_repository.dart';
 import '../services/api_client.dart' show kAuthTokenKey;
+import '../services/notification_service.dart';
 
 const _kTokenKey = kAuthTokenKey;
 const _kUserKey = 'auth_user';
@@ -55,6 +57,12 @@ class AuthProvider extends ChangeNotifier {
       await _persistSession(result);
       _currentUser = result.user;
       _errorMessage = null;
+      // Module 10.5 / LO7: fire the local notification right after a
+      // successful login, same as NotificationService.show() in class.
+      unawaited(NotificationService.instance.show(
+        title: 'Đăng nhập thành công',
+        body: 'Chào mừng trở lại, ${result.user.fullName}!',
+      ));
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceFirst('Exception: ', '');

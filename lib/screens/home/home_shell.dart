@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../chat/chat_list_screen.dart';
 import '../my_bookings/my_bookings_screen.dart';
 import '../profile/profile_screen.dart';
 import 'home_tab.dart';
 
-/// Bottom navigation host: Trang chủ / Lịch hẹn / Tài khoản.
+/// Bottom navigation host: Trang chủ / Lịch hẹn / Nhắn tin / Tài khoản.
 class HomeShellScreen extends StatefulWidget {
   const HomeShellScreen({super.key});
 
@@ -18,6 +19,7 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
   static const _tabs = [
     HomeTab(),
     MyBookingsScreen(),
+    ChatListScreen(),
     ProfileScreen(),
   ];
 
@@ -31,6 +33,7 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Trang chủ'),
           NavigationDestination(icon: Icon(Icons.event_note_outlined), selectedIcon: Icon(Icons.event_note), label: 'Lịch hẹn'),
+          NavigationDestination(icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble), label: 'Nhắn tin'),
           NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Tài khoản'),
         ],
       ),
